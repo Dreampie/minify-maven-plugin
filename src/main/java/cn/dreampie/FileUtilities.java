@@ -133,16 +133,13 @@ public class FileUtilities {
    * Convenience Method for turning a FileSet into a list of files to be processed
    */
   public static List<File> fileSetToFileList(FileSet fileset) throws IOException {
-    List<File> files = Lists.newArrayList();
-
-    files.addAll(FileUtilities.getFilesFromFileSet(fileset));
-
-    return files;
+    return FileUtilities.getFilesFromFileSet(fileset);
   }
+
 
   public static void main(String[] args) {
 //    System.out.println(FileUtilities.getCommaSeparatedListOfFileNames(directoryToFileList("/home/ice/IdeaProjects/icedog/src/main/")));
-    File file=new File("/home/ice/IdeaProjects/icedog/src/main/webapp/javascript/min/a.js");
+    File file = new File("/home/ice/IdeaProjects/icedog/src/main/webapp/javascript/min/a.js");
     System.out.println(file.getParentFile().mkdir());
   }
 }
