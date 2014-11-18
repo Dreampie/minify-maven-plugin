@@ -11,6 +11,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -48,8 +49,10 @@ public class MinifierMojo extends AbstractMojo {
    * Only one or the other of files or directoryOfFilesToMinify should be specified.  Only files is used if both are specified.
    */
   @Parameter
-  private FileSet sourceFiles;
+  private FileSet includeFiles;
 
+  @Parameter
+  private FileSet exculdeFiles;
 
   @Parameter(defaultValue = "${project.basedir}/src/main/webapp/javascript/${project.artifactId}-${project.version}.min.js")
   private File outputFile;
@@ -70,16 +73,19 @@ public class MinifierMojo extends AbstractMojo {
       ClosureMinifier minifier = new ClosureMinifier();
       minifier.setSourceDirectory(sourceDirectory);
       List<File> filesToMinify;
-      if (null != sourceFiles) {
+      if (null != includeFiles) {
         getLog().debug("Configured a fileset for minification");
-        filesToMinify = FileUtilities.fileSetToFileList(sourceFiles);
+        filesToMinify = FileUtilities.fileSetToFileList(includeFiles);
       } else {
         getLog().debug("Configured a directory for minification");
         filesToMinify = FileUtilities.directoryToFileList(sourceDirectory);
       }
-
-      //check for dest file in source files, if present remove it.
-      List<File> filesToMinifyMinusDestFile = getMinifyFiles(filesToMinify, outputFile);
+      List<File> filesToMinifyMinusDestFile = null;
+      if (null != exculdeFiles) {
+        filesToMinifyMinusDestFile = getMinifyFiles(getMinifyFiles(filesToMinify, Lists.newArrayList(outputFile)), FileUtilities.fileSetToFileList(exculdeFiles));
+      } else {
+        filesToMinifyMinusDestFile = getMinifyFiles(filesToMinify, Lists.newArrayList(outputFile));
+      }
 
       getLog().info("About to minify the following files:  " + FileUtilities
           .getCommaSeparatedListOfFileNames(filesToMinifyMinusDestFile));
@@ -96,13 +102,16 @@ public class MinifierMojo extends AbstractMojo {
     }
   }
 
-  private List<File> getMinifyFiles(List<File> filesToMinify, File outputFile) {
-    if (outputFile == null)
+  private List<File> getMinifyFiles(List<File> filesToMinify, List<File> outputFiles) {
+    if (outputFiles == null && outputFiles.size() <= 0)
       return filesToMinify;
+
     List<File> filesToMinifyMinusDestFile = Lists.newArrayList();
     for (File file : filesToMinify) {
-      if (!file.getAbsolutePath().equals(outputFile.getAbsolutePath())) {
-        filesToMinifyMinusDestFile.add(file);
+      for (File outFile : outputFiles) {
+        if (!file.getAbsolutePath().equals(outFile.getAbsolutePath())) {
+          filesToMinifyMinusDestFile.add(file);
+        }
       }
     }
     return filesToMinifyMinusDestFile;
