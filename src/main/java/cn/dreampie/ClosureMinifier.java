@@ -135,6 +135,7 @@ public class ClosureMinifier {
       files.add(getInput(file));
     }
 
+
     return files;
   }
 
@@ -158,4 +159,10 @@ public class ClosureMinifier {
     this.outputDirectory = outputDirectory;
   }
 
+  public static void main(String[] args) {
+    ClosureMinifier minifier = new ClosureMinifier();
+    Compiler compiler = new Compiler();
+    Result result = compiler.compile(minifier.getExterns(), Lists.newArrayList(SourceFile.fromCode("a", "function a(){\nvar a=new Array();\nconsole.log(a)\n}")), minifier.getCompilerOptions());
+    System.out.println(compiler.toSource());
+  }
 }
